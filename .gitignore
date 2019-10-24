@@ -1,0 +1,16 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/wsedit
+wsedit.so
+wsedit.dylib
+wsedit.dll
+wsedit.a
+wsedit.lib
+wsedit-test-*
+*.exe
+*.o
+*.obj
+*.lst
+dub.selections.json
