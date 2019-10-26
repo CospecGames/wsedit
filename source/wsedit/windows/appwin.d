@@ -37,11 +37,12 @@ private:
     }
 
     Box workspaceBox;
+    Stack stack;
+    string[] pageStack;
 
 public:
     WSHeader header;
     Workspace workspace;
-    Stack stack;
 
     this(Application app) {
         super(app);
@@ -49,7 +50,7 @@ public:
         STATE.mainWindow = this;
         
         // Enable dark mode.
-        //this.getSettings().setProperty("gtk-application-prefer-dark-theme", true);
+        this.getSettings().setProperty("gtk-application-prefer-dark-theme", true);
 
         setupActions();
 
@@ -62,9 +63,9 @@ public:
 
         stack.addNamed(workspaceBox, "workspace");
         stack.addNamed(new WSPageNew(this), "newScene");
-        stack.setTransitionType(StackTransitionType.CROSSFADE);
 
         stack.setVisibleChildName("workspace");
+        stack.setTransitionDuration(250);
 
         // Add the components and show them.
         this.setTitlebar(header);
@@ -72,6 +73,19 @@ public:
         this.setIconFromFile("res/wereshift.png");
         this.setSizeRequest(800, 600);
         this.showAll();
+    }
+
+    void push(string screen) {
+        if (pageStack.length > 0 && pageStack[$-1] == screen) return;
+        stack.setTransitionType(StackTransitionType.CROSSFADE);
+        pageStack ~= screen;
+        stack.setVisibleChildName(screen);
+    }
+
+    void pop() {
+        if (pageStack.length > 0) pageStack.length--;
+        stack.setTransitionType(StackTransitionType.UNDER_DOWN);
+        stack.setVisibleChildName(pageStack.length == 0 ? "workspace" : pageStack[$-1]);
     }
 
     /**

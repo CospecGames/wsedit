@@ -14,6 +14,31 @@ import gtk.Window;
 import wsf;
 
 /**
+    The currently "selected" index
+*/
+struct Selection {
+    /**
+        X index
+    */
+    double x;
+
+    /**
+        Y index
+    */
+    double y;
+
+    /**
+        X-end index
+    */
+    double toX;
+
+    /**
+        Y-end index
+    */
+    double toY;
+}
+
+/**
     The model where the state is stored in
 */
 struct StateModel {
@@ -38,6 +63,11 @@ struct StateModel {
         Height of tile
     */
     int tileHeight = 32;
+
+    /**
+        The current selection
+    */
+    Selection selection;
 
 
     /**

@@ -1,3 +1,14 @@
+/**
+    Copyright © 2019, Cospec Games
+
+    Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+    1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+    2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 module wsedit.widgets.veccombo;
 import gtk.SpinButton;
 import gtk.Box;
@@ -5,6 +16,9 @@ import gtk.Adjustment;
 import dazzle.EntryBox;
 import gtk.Label;
 import std.traits;
+import gtk.ToggleButton;
+import gtk.Image;
+import gtk.EntryBuffer;
 
 enum WSDimension : ubyte {
     X = 0,
@@ -24,6 +38,10 @@ private:
     EntryBox yLabelBox;
     SpinButton y;
 
+    ToggleButton lock;
+    bool lockedTogether = false;
+    bool isChanging = true;
+
     double defaultValue;
 
 public:
@@ -32,7 +50,7 @@ public:
 
         Shows 2 spinners for X and Y.
     */
-    this(uint digits, string xText = "X", string yText = "Y", bool allowNegative = false, double defaultValue = 0) {
+    this(uint digits, string xText = "X", string yText = "Y", bool allowNegative = false, double defaultValue = 0, double minVal = double.infinity, double maxVal = double.infinity) {
         super(Orientation.HORIZONTAL, 16);
         this.defaultValue = defaultValue;
 
@@ -43,13 +61,16 @@ public:
         xBox = new Box(Orientation.HORIZONTAL, 0);
         xBox.getStyleContext.addClass("linked");
 
+        double min = minVal == double.infinity ? (allowNegative ? int.min : uint.min) : minVal;
+        double max = maxVal == double.infinity ? (allowNegative ? int.max : uint.max) : maxVal+1;
+
         Adjustment rangeX = new Adjustment(
             defaultValue,
-            allowNegative ? int.min : uint.min,
-            allowNegative ? int.max : uint.max,
+            min,
+            max,
             1,
             1,
-            5
+            1
         );
 
         x = new SpinButton(rangeX, 0.5, digits);
@@ -58,8 +79,8 @@ public:
         Label xLabel = new Label(xText);
         xLabelBox.packStart(xLabel, false, false, 0);
 
-        xBox.packStart(xLabelBox, true, true, 0);
-        xBox.packStart(x, false, false, 0);
+        xBox.packStart(xLabelBox, false, false, 0);
+        xBox.packStart(x, true, true, 0);
 
         /**
             Y coordinate set
@@ -70,11 +91,11 @@ public:
 
         Adjustment rangeY = new Adjustment(
             defaultValue,
-            allowNegative ? int.min : uint.min,
-            allowNegative ? int.max : uint.max,
+            min,
+            max,
             1,
             1,
-            5
+            1
         );
 
         y = new SpinButton(rangeY, 0.5, digits);
@@ -83,14 +104,43 @@ public:
         Label yLabel = new Label(yText);
         yLabelBox.packStart(yLabel, false, false, 0);
 
-        yBox.packStart(yLabelBox, true, true, 0);
-        yBox.packStart(y, false, false, 0);
+        yBox.packStart(yLabelBox, false, false, 0);
+        yBox.packStart(y, true, true, 0);
 
         /**
             Final step
         */
-        this.packStart(xBox, false, false, 0);
-        this.packEnd(yBox, false, false, 0);
+
+        lock = new ToggleButton();
+        lock.setImage(new Image("changes-allow-symbolic", IconSize.MENU));
+        lock.addOnReleased((_) {
+            lockedTogether = !lockedTogether;
+            (cast(Image)lock.getImage()).setFromIconName(lockedTogether ? "changes-prevent-symbolic" : "changes-allow-symbolic", IconSize.MENU);
+        });
+
+        x.addOnChanged((_) {
+            if (lockedTogether && !isChanging) {
+                isChanging = true;
+                y.setText(x.getText);
+                return;
+            }
+
+            isChanging = false;
+        });
+        
+        y.addOnChanged((_) {
+            if (lockedTogether && !isChanging) {
+                isChanging = true;
+                x.setText(y.getText);
+                return;
+            }
+
+            isChanging = false;
+        });
+
+        this.packStart(xBox, true, true, 0);
+        this.packStart(yBox, true, true, 0);
+        this.packEnd(lock, false, false, 0);
     }
 
     void setXIncrement(double increment, double altIncrement = 1) {
