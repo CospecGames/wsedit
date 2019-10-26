@@ -40,3 +40,12 @@ static:
         return errDialog.run();
     }
 }
+
+/**
+    Builds a viable file path for a level file
+*/
+string buildPathForScene(string name) {
+    import std.format : format;
+    import std.array : replace;
+    return name.length == 0 ? "" : "%s.lvl".format(name.replace(" ", "_"));
+}

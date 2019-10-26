@@ -118,6 +118,9 @@ private:
 
         drawGrid(ctx);
         drawHover(ctx);
+
+        // Disable antialias and start drawing all the layers
+        ctx.setAntialias(cairo_antialias_t.NONE);
         // TODO: draw layers
     }
 
@@ -126,22 +129,22 @@ private:
         ctx.setLineCap(cairo_line_cap_t.ROUND);
         ctx.setLineJoin(cairo_line_join_t.ROUND);
         ctx.setLineWidth(1);
-        foreach(x; 1..STATE.scene.width) {
-            ctx.moveTo(STATE.scene.tileWidth*x, 0);
-            ctx.lineTo(STATE.scene.tileWidth*x, STATE.scene.tileHeight*STATE.scene.height);
+        foreach(x; 1..(STATE.scene.width/STATE.tileWidth)) {
+            ctx.moveTo(STATE.tileWidth*x, 0);
+            ctx.lineTo(STATE.tileWidth*x, STATE.scene.height);
         }
 
-        foreach(y; 1..STATE.scene.height) {
-            ctx.moveTo(0, STATE.scene.tileHeight*y);
-            ctx.lineTo(STATE.scene.tileWidth*STATE.scene.width, STATE.scene.tileHeight*y);   
+        foreach(y; 1..(STATE.scene.height/STATE.tileHeight)) {
+            ctx.moveTo(0, STATE.tileHeight*y);
+            ctx.lineTo(STATE.scene.width, STATE.tileHeight*y);   
         }
         ctx.stroke();
 
         // Outer lines
         ctx.moveTo(0, 0);
-        ctx.lineTo(STATE.scene.tileWidth*STATE.scene.width, 0);
-        ctx.lineTo(STATE.scene.tileWidth*STATE.scene.width, STATE.scene.tileHeight*STATE.scene.height);
-        ctx.lineTo(0, STATE.scene.tileHeight*STATE.scene.height);
+        ctx.lineTo(STATE.scene.width, 0);
+        ctx.lineTo(STATE.scene.width, STATE.scene.height);
+        ctx.lineTo(0, STATE.scene.height);
         ctx.lineTo(0, 0);
         ctx.stroke();
     }
@@ -156,9 +159,9 @@ private:
 
 
         ctx.moveTo(selectedTile.x, selectedTile.y);
-        ctx.lineTo(selectedTile.x+STATE.scene.tileWidth, selectedTile.y);
-        ctx.lineTo(selectedTile.x+STATE.scene.tileWidth, selectedTile.y+STATE.scene.tileHeight);
-        ctx.lineTo(selectedTile.x, selectedTile.y+STATE.scene.tileHeight);
+        ctx.lineTo(selectedTile.x+STATE.tileWidth, selectedTile.y);
+        ctx.lineTo(selectedTile.x+STATE.tileWidth, selectedTile.y+STATE.tileHeight);
+        ctx.lineTo(selectedTile.x, selectedTile.y+STATE.tileHeight);
         ctx.lineTo(selectedTile.x, selectedTile.y);
         ctx.stroke();
     }
@@ -187,8 +190,8 @@ private:
     }
 
     void constrainCamera() {
-        double twidth = STATE.scene.width*STATE.scene.tileWidth;
-        double theight = STATE.scene.height*STATE.scene.tileHeight;
+        double twidth = STATE.scene.width;
+        double theight = STATE.scene.height;
 
         if (camera.x > 0) camera.x = 0;
         if (camera.x < -twidth) camera.x = -twidth;
@@ -211,12 +214,12 @@ private:
         sceneMouseY = ((mouseY/camera.zoom)-(ah/camera.zoom))-camera.y;
         if (sceneMouseX < 0 || sceneMouseY < 0) return;
 
-        int tileXPos = cast(int)sceneMouseX/STATE.scene.tileWidth;
-        int tileYPos = cast(int)sceneMouseY/STATE.scene.tileHeight;
+        int tileXPos = cast(int)sceneMouseX/STATE.tileWidth;
+        int tileYPos = cast(int)sceneMouseY/STATE.tileHeight;
         if (tileXPos >= STATE.scene.width || tileYPos >= STATE.scene.height) return;
 
-        selectedTile.x = tileXPos*STATE.scene.tileWidth;
-        selectedTile.y = tileYPos*STATE.scene.tileHeight;
+        selectedTile.x = tileXPos*STATE.tileWidth;
+        selectedTile.y = tileYPos*STATE.tileHeight;
     }
 
 public:
@@ -279,6 +282,11 @@ public:
             camera.zoom += scroll.direction == ScrollDirection.UP ? -0.2 : 0.2;
             if (camera.zoom < 0.1) {
                 camera.zoom = 0.1;
+            }
+
+            // More than 4x zoom is ridiculous.
+            if (camera.zoom > 4) {
+                camera.zoom = 4;
             }
 
             queueDraw();

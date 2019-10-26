@@ -29,12 +29,25 @@ struct StateModel {
     /// The scene
     Scene* scene;
 
+    /**
+        Width of tile
+    */
+    int tileWidth = 32;
+
+    /**
+        Height of tile
+    */
+    int tileHeight = 32;
+
 
     /**
         Creates a new empty scene
     */
-    void createScene() {
+    void createScene(string name, int width, int height) {
         scene = new Scene;
+        scene.width = width;
+        scene.height = height;
+        scene.name = name;
     }
 }
 

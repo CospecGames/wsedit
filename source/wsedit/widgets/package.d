@@ -12,3 +12,6 @@
 module wsedit.widgets;
 public import wsedit.widgets.headerbar;
 public import wsedit.widgets.workspace;
+public import wsedit.widgets.pages;
+public import wsedit.widgets.pathbox;
+public import wsedit.widgets.veccombo;

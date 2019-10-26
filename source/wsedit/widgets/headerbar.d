@@ -33,6 +33,7 @@ import gio.SimpleAction;
 import gdk.Event;
 
 import wsedit;
+import wsedit.widgets;
 import wsedit.helpers;
 import wsedit.windows.appwin;
 
@@ -41,8 +42,8 @@ private:
     WSEditWindow appwin;
 
     /* I/O Section */
-    MenuButton openButton;
     Button newButton;
+    MenuButton openButton;
     Button saveButton;
     Box ioBox;
 
@@ -67,11 +68,9 @@ private:
 
         newButton = genButton("document-new-symbolic");
         newButton.addOnReleased((Button btn) {
-            STATE.createScene();
-            STATE.currentSceneFile = "unnamed.lvl";
-            title = "Unnamed Level";
-            appwin.workspace.queueDraw();
+            appwin.stack.setVisibleChildName("newScene");
         });
+
 
         openButton = new MenuButton("document-open-symbolic", openMenu);
         saveButton = genButton("document-save-symbolic");

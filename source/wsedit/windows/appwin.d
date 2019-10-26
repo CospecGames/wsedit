@@ -14,9 +14,11 @@ import dazzle.ApplicationWindow;
 import dazzle.Application;
 import gtk.Box;
 import gtk.Button;
+import gtk.Stack;
 import gio.SimpleAction;
 import wsedit.widgets;
 import wsedit.windows.about;
+import wsedit.widgets.pages;
 import wsedit;
 
 /**
@@ -39,6 +41,7 @@ private:
 public:
     WSHeader header;
     Workspace workspace;
+    Stack stack;
 
     this(Application app) {
         super(app);
@@ -46,21 +49,35 @@ public:
         STATE.mainWindow = this;
         
         // Enable dark mode.
-        this.getSettings().setProperty("gtk-application-prefer-dark-theme", true);
+        //this.getSettings().setProperty("gtk-application-prefer-dark-theme", true);
 
         setupActions();
 
+        stack = new Stack();
         header = new WSHeader(this);
         workspace = new Workspace();
 
         workspaceBox = new Box(Orientation.HORIZONTAL, 0);
         workspaceBox.packStart(workspace, true, true, 0);
 
+        stack.addNamed(workspaceBox, "workspace");
+        stack.addNamed(new WSPageNew(this), "newScene");
+        stack.setTransitionType(StackTransitionType.CROSSFADE);
+
+        stack.setVisibleChildName("workspace");
+
         // Add the components and show them.
         this.setTitlebar(header);
-        this.add(workspaceBox);
+        this.add(stack);
         this.setIconFromFile("res/wereshift.png");
         this.setSizeRequest(800, 600);
         this.showAll();
+    }
+
+    /**
+        Updates the window title
+    */
+    void updateTitle(string newProject) {
+        header.title = newProject;
     }
 }
