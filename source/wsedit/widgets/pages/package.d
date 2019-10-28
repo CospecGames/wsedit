@@ -11,3 +11,4 @@
 */
 module wsedit.widgets.pages;
 public import wsedit.widgets.pages.newscene;
+public import wsedit.widgets.pages.workspace;

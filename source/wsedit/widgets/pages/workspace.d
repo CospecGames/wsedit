@@ -9,9 +9,16 @@
 
     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-module wsedit.widgets.workspace;
+module wsedit.widgets.pages.workspace;
 import gtk.DrawingArea;
+import gtk.Overlay;
+import gtk.Widget;
+import gtk.Revealer;
+import gtk.Box;
+import gdkpixbuf.Pixbuf;
 import gdk.Cairo;
+import gdk.DragContext;
+import gdk.Cursor;
 import cairo.Context;
 import cairo.ImageSurface;
 import cairo.RecordingSurface;
@@ -19,12 +26,7 @@ import cairo.FontFace;
 import cairo.FontOption;
 import cairo.Pattern;
 import cairo.Matrix;
-import cairo.c.functions : cairo_matrix_init_identity;
-import gdkpixbuf.Pixbuf;
-import gtk.Widget;
-import gdk.DragContext;
-import gdk.Cursor;
-import core.memory : GC;
+import wsedit.widgets;
 import wsedit;
 
 // status text
@@ -36,9 +38,8 @@ private {
 /**
     The editor workspace
 */
-class Workspace : DrawingArea {
+class WorkspaceViewport : DrawingArea {
 private:
-
     double animOffset = 0.0;
 
     double mouseX;
@@ -273,24 +274,29 @@ public:
     */
     Camera2D camera;
 
-    /**
-        The tile that the mouse is hovering over
-    */
-    Selection selectedTile;
-
     this() {
         super(1, 1);
-        selectedTile = Selection(0, 0);
-
         wereshiftLogo = new Pixbuf("res/wereshift.png");
+
+        /* Update */
+        import gtk.Widget : Widget;
+        import gdk.FrameClock : FrameClock;
+        this.addTickCallback((Widget, FrameClock) {
+            queueDraw();
+            return true;
+        });
+
+        /* Draw */
         this.addOnDraw((Scoped!Context ctx, Widget _) {
             return onDraw(ctx);
         });
 
+        /* Size alloc */
         this.addOnSizeAllocate((Allocation alloc, Widget) {
             area = GdkRectangle(alloc.x, alloc.y, alloc.width, alloc.height);
         });
 
+        /* Mouse controls */
         this.addOnMotionNotify(&onMotion);
         this.addOnButtonPress((GdkEventButton* ev, Widget) {
             if (STATE.scene is null) return true;
@@ -349,12 +355,26 @@ public:
             queueDraw();
             return true;
         });
-
-        import gtk.Widget : Widget;
-        import gdk.FrameClock : FrameClock;
-        this.addTickCallback((Widget, FrameClock) {
-            queueDraw();
-            return true;
-        });
     }
+}
+
+class Workspace : Box {
+public:
+    Overlay overlay;
+    WorkspaceViewport viewport;
+    Toolbox toolbox;
+
+    this() {
+        super(Orientation.HORIZONTAL, 0);
+        viewport = new WorkspaceViewport();
+        overlay = new Overlay();
+        toolbox = new Toolbox();
+        toolbox.setValign(Align.START);
+        toolbox.setHalign(Align.START);
+        overlay.add(viewport);
+        overlay.addOverlay(toolbox);
+
+        this.packStart(overlay, true, true, 0);
+    }
+
 }

@@ -71,6 +71,7 @@ public:
         this.setTitlebar(header);
         this.add(stack);
         this.setIconFromFile("res/wereshift.png");
+        this.setWmclass("Wereshift Scene Editor", "WSEdit");
         this.setSizeRequest(800, 600);
         this.showAll();
     }

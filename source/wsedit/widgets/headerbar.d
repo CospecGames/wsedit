@@ -174,7 +174,6 @@ public:
         // Set the systemwide window title
         appwin.setName(wname);
         appwin.setTitle(wname);
-        appwin.setWmclass(wname, "WSEdit");
 
         // Set the title label.
         titleLabel.setText(name.length == 0 ? "Wereshift Scene Editor" : name);

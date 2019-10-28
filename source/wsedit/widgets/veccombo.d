@@ -121,7 +121,7 @@ public:
         x.addOnChanged((_) {
             if (lockedTogether && !isChanging) {
                 isChanging = true;
-                y.setText(x.getText);
+                y.setValue(x.getValue);
                 return;
             }
 
@@ -131,7 +131,7 @@ public:
         y.addOnChanged((_) {
             if (lockedTogether && !isChanging) {
                 isChanging = true;
-                x.setText(y.getText);
+                x.setValue(y.getValue);
                 return;
             }
 
