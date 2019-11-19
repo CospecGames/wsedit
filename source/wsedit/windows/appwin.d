@@ -16,9 +16,11 @@ import gtk.Box;
 import gtk.Button;
 import gtk.Stack;
 import gio.SimpleAction;
+import gtk.CssProvider;
 import wsedit.widgets;
+import wsedit.pages;
 import wsedit.windows.about;
-import wsedit.widgets.pages;
+import wsedit.workspace;
 import wsedit;
 
 /**
@@ -26,6 +28,7 @@ import wsedit;
 */
 class WSEditWindow : ApplicationWindow {
 private:
+
     void setupActions() {
         SimpleAction aboutAction = new SimpleAction("about-open", null);
         aboutAction.addOnActivate((Variant, SimpleAction) {
@@ -36,13 +39,23 @@ private:
         addAction(aboutAction);
     }
 
-    Box workspaceBox;
+    string getSuitablePage() {
+        return workspaces.count > 0 ? "workspacesPage" : "initPage";
+    }
+
     Stack stack;
     string[] pageStack;
 
 public:
+    /**
+        The header bar
+    */
     WSHeader header;
-    Workspace workspace;
+
+    /**
+        The list of current open workspaces
+    */
+    WSWorkspacesPage workspaces;
 
     this(Application app) {
         super(app);
@@ -50,32 +63,44 @@ public:
         STATE.mainWindow = this;
         
         // Enable dark mode.
+        this.addStylesheet(import("style.css"));
         this.getSettings().setProperty("gtk-application-prefer-dark-theme", true);
 
         setupActions();
 
         stack = new Stack();
         header = new WSHeader(this);
-        workspace = new Workspace();
 
-        workspaceBox = new Box(Orientation.HORIZONTAL, 0);
-        workspaceBox.packStart(workspace, true, true, 0);
 
-        stack.addNamed(workspaceBox, "workspace");
-        stack.addNamed(new WSPageNew(this), "newScene");
-
-        stack.setVisibleChildName("workspace");
-        stack.setTransitionDuration(250);
+        workspaces = new WSWorkspacesPage(this);
+        stack.addNamed(workspaces, "workspacesPage");
+        stack.addNamed(new WSPageNew(this), "newScenePage");
+        stack.addNamed(new WSPageInit(), "initPage");
 
         // Add the components and show them.
         this.setTitlebar(header);
         this.add(stack);
-        this.setIconFromFile("res/wereshift.png");
+        this.setIconFromFile("res/logo.png");
         this.setWmclass("Wereshift Scene Editor", "WSEdit");
         this.setSizeRequest(800, 600);
         this.showAll();
+
+        stack.setVisibleChildName("initPage");
+        stack.setTransitionDuration(250);
     }
 
+    /**
+        Switches to screen and resets stack
+    */
+    void to(string screen) {
+        pageStack.length = 0;
+        stack.setTransitionType(StackTransitionType.CROSSFADE);
+        stack.setVisibleChildName(screen);
+    }
+
+    /**
+        Pushes screen to stack
+    */
     void push(string screen) {
         if (pageStack.length > 0 && pageStack[$-1] == screen) return;
         stack.setTransitionType(StackTransitionType.CROSSFADE);
@@ -83,10 +108,13 @@ public:
         stack.setVisibleChildName(screen);
     }
 
+    /**
+        Pops screen from stack
+    */
     void pop() {
         if (pageStack.length > 0) pageStack.length--;
         stack.setTransitionType(StackTransitionType.UNDER_DOWN);
-        stack.setVisibleChildName(pageStack.length == 0 ? "workspace" : pageStack[$-1]);
+        stack.setVisibleChildName(pageStack.length == 0 ? getSuitablePage() : pageStack[$-1]);
     }
 
     /**
@@ -95,4 +123,19 @@ public:
     void updateTitle(string newProject) {
         header.title = newProject;
     }
+
+    /**
+        Add stylesheet to screen
+    */
+    void addStylesheet(string code) {
+        this.getStyleContext().addProviderForScreen(this.getScreen(), styleFromString(code), STYLE_PROVIDER_PRIORITY_USER);
+    }
+}
+/**
+    Returns a CSS provider from a string of css data.
+*/
+CssProvider styleFromString(string styleSheet) {
+    CssProvider provider = new CssProvider();
+    provider.loadFromData(styleSheet);
+    return provider;
 }

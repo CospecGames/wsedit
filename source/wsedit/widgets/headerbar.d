@@ -68,7 +68,7 @@ private:
 
         newButton = genButton("document-new-symbolic");
         newButton.addOnReleased((Button btn) {
-            appwin.push("newScene");
+            appwin.push("newScenePage");
         });
 
 

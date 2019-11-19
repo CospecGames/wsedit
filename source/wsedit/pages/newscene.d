@@ -9,7 +9,7 @@
 
     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-module wsedit.widgets.pages.newscene;
+module wsedit.pages.newscene;
 import gtk.Popover;
 import gtk.Box;
 import gtk.ButtonBox;
@@ -18,9 +18,6 @@ import gtk.Widget;
 import gtk.Entry;
 import gtk.Viewport;
 import gtk.Adjustment;
-import handy.PreferencesPage;
-import handy.ActionRow;
-import handy.PreferencesGroup;
 import dazzle.ThreeGrid;
 import wsedit.windows.appwin;
 import gtk.Label;
@@ -28,14 +25,17 @@ import gobject.Value;
 import std.conv : text;
 import std.format;
 import wsedit.widgets;
+import wsedit.workspace;
 import wsedit.helpers;
 import wsedit;
+import wsedit.fmt;
 
 /**
     Wereshift editor new scene Popover
 */
 class WSPageNew : Viewport {
 private:
+
     WSEditWindow window;
 
     ThreeGrid grid;
@@ -44,7 +44,6 @@ private:
     WSPathBox pathBox;
     WSVecCombo defaultSize;
     WSVecCombo sceneSize;
-    WSVecCombo quadBasis;
 
     Button createScene;
     Button cancelScene;
@@ -72,9 +71,6 @@ private:
         sceneSize.setXIncrement(defaultSize.getX!double);
         sceneSize.setYIncrement(defaultSize.getY!double);
 
-        quadBasis = new WSVecCombo(0, "Width", "Height", false, 512, 128, 1024);
-        quadBasis.setXIncrement(128);
-        quadBasis.setYIncrement(128);
 
         createScene = new Button("Create");
         createScene.getStyleContext().addClass("suggested-action");
@@ -101,17 +97,18 @@ private:
                 }
             }
 
-            STATE.currentSceneFile = file;
-            STATE.createScene(nameEntry.getText(), sceneSize.getX!int*defaultSize.getX!int, sceneSize.getY!int*defaultSize.getY!int);
-            STATE.tileWidth = defaultSize.getX!int;
-            STATE.tileHeight = defaultSize.getY!int;
-            STATE.scene.quadBasisX = quadBasis.getX!int;
-            STATE.scene.quadBasisY = quadBasis.getY!int;
+            WSESceneInfo sceneInfo;
+            sceneInfo.tileWidth =   defaultSize.getX!uint;
+            sceneInfo.tileHeight =  defaultSize.getY!uint;
+            sceneInfo.width =       sceneSize.getX!uint;
+            sceneInfo.height =      sceneSize.getY!uint;
 
-            // Update window
-            window.updateTitle(nameEntry.getText());
-            window.workspace.queueDraw();
-            window.pop();
+            // Create workspace and save it.
+            Workspace workspace = new Workspace(newProject(nameEntry.getText(), file, sceneInfo));
+            workspace.project.save();
+
+            window.workspaces.addWorkspace(workspace);
+            window.to("workspacesPage");
             reset();
         });
 
@@ -127,7 +124,6 @@ private:
         addOption(1, new Label("Scene File"), pathBox);
         addOption(2, new Label("Default Tile Size"), defaultSize);
         addOption(3, new Label("Scene Size"), sceneSize);
-        addOption(4, new Label("Quadtree Basis"), quadBasis);
         addButtons(5, cancelScene, createScene);
 
         grid.setRowSpacing(24);

@@ -11,7 +11,9 @@
 */
 module wsedit;
 import gtk.Window;
-import wsf;
+import wsf.spec.scene;
+import wsedit.subsystem.tilemgr;
+import wsedit.fmt;
 
 /**
     The currently "selected" index
@@ -42,43 +44,12 @@ struct Selection {
     The model where the state is stored in
 */
 struct StateModel {
-    /// The file for the current scene
-    string currentSceneFile;
 
     /// The main app window
     Window mainWindow;
 
     /// Wether the app is in fullscreen mode
     bool fullscreen;
-
-    /// The scene
-    Scene* scene;
-
-    /**
-        Width of tile
-    */
-    int tileWidth = 32;
-
-    /**
-        Height of tile
-    */
-    int tileHeight = 32;
-
-    /**
-        The current selection
-    */
-    Selection selection;
-
-
-    /**
-        Creates a new empty scene
-    */
-    void createScene(string name, int width, int height) {
-        scene = new Scene;
-        scene.width = width;
-        scene.height = height;
-        scene.name = name;
-    }
 }
 
 /**

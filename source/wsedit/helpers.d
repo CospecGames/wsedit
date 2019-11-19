@@ -47,5 +47,5 @@ static:
 string buildPathForScene(string name) {
     import std.format : format;
     import std.array : replace;
-    return name.length == 0 ? "" : "%s.wsf".format(name.replace(" ", "_"));
+    return name.length == 0 ? "" : "%s.wsp".format(name.replace(" ", "_"));
 }

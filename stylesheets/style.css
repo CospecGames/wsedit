@@ -1,0 +1,9 @@
+/*
+    CSS File for application
+*/
+
+tab {
+    /* For close button */
+    padding-right: 0px;
+	outline-style: none;
+}
