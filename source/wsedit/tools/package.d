@@ -4,6 +4,8 @@ public import wsedit.subsystem.wsrenderer;
 public import wsedit.subsystem.mouse;
 
 public import wsedit.tools.tiletool;
+public import wsedit.tools.selecttool;
+public import wsedit.tools.erasetool;
 
 /**
     A tool provides functionality on the canvas
@@ -40,3 +42,4 @@ public:
     */
     abstract void update(Mouse mouse);
 }
+

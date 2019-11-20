@@ -13,6 +13,8 @@ module wsedit.fmt.project;
 import wsf.serialization;
 import std.file;
 import wsedit.fmt.resource;
+import wsedit.fmt.scene;
+import wsedit.fmt.tile;
 import std.algorithm.searching : endsWith;
 
 /**
@@ -23,6 +25,11 @@ WSEProject newProject(string name, string path, WSESceneInfo info) {
     project.name = name;
     project.path = path;
     project.sceneInfo = info;
+
+    WSETileLayer rootLayer;
+    rootLayer.orderId = 0;
+
+    project.scene.layers ~= rootLayer;
     return project;
 }
 
@@ -68,6 +75,11 @@ struct WSEProject {
         Information about the scene
     */
     WSESceneInfo sceneInfo;
+
+    /**
+        The actual scene
+    */
+    WSEScene scene;
 
     /**
         Information about the tiles in the tileset

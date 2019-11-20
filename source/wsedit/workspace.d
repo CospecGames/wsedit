@@ -15,6 +15,7 @@ import wsedit.subsystem.mouse;
 import wsedit.fmt;
 import wsedit.widgets;
 import wsedit;
+import wsedit.tools;
 import wsedit.subsystem.tilemgr;
 
 import gtk.Overlay;
@@ -89,6 +90,8 @@ public:
         renderer = new Renderer(viewport);
         overlay = new Overlay();
         toolbox = new Toolbox();
+        toolbox.addTool(new TileTool(this));
+        toolbox.addTool(new EraseTool(this));
         toolbox.setValign(Align.START);
         toolbox.setHalign(Align.START);
         overlay.add(viewport);
@@ -101,15 +104,11 @@ public:
         gridConfig.cellsY = project.sceneInfo.height;
         renderer.setGridConfig(gridConfig);
 
-        // Test tool
-        import wsedit.tools.tiletool;
-        TileTool tiletool = new TileTool(this);
-
         import gtk.Widget : Widget;
         import gdk.FrameClock : FrameClock;
         viewport.addTickCallback((Widget, FrameClock) {
             viewport.update();
-            tiletool.update(mouse);
+            if (toolbox.currentTool() !is null) toolbox.currentTool().update(mouse);
             queueDraw();
             mouse.feedScroll(0);
             return true;
@@ -156,7 +155,19 @@ public:
             renderer.begin(ctx);
                 renderer.applyCamera(camera);
 
-                tiletool.draw(renderer);
+                foreach(layer; project.scene.layers) {
+                    foreach(tile; layer.tiles) {
+                        renderer.renderTile(
+                            tiles.layout.getTile(tile.tileIdX, tile.tileIdY),
+                            tile.x,
+                            tile.y,
+                            tile.hflip,
+                            tile.vflip
+                        );
+                    }
+                }
+
+                if (toolbox.currentTool() !is null) toolbox.currentTool().draw(renderer);
 
             renderer.end();
             return false; 

@@ -15,5 +15,21 @@ module wsedit.fmt.tile;
     A wereshift tile
 */
 struct WSETile {
+    /// Tile X ID
+    uint tileIdX;
 
+    /// Tile Y ID
+    uint tileIdY;
+
+    /// Allow vertical flipping
+    bool vflip;
+
+    /// Allow horizontal flipping
+    bool hflip;
+
+    /// X coordinate of tile
+    uint x;
+
+    /// Y coordinate of tile
+    uint y;
 }

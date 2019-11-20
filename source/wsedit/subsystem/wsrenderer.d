@@ -175,7 +175,7 @@ public:
         ctx.moveTo(selection.x, selection.y);
         ctx.relLineTo(selection.toX, 0);
         ctx.relLineTo(0, selection.toY);
-        ctx.relLineTo(-selection.x, 0);
+        ctx.relLineTo(-selection.toX, 0);
         ctx.closePath();
         ctx.stroke();
 
@@ -201,8 +201,8 @@ public:
         
         ctx.scale(hflip ? -1 : 1, vflip ? -1 : 1);
 
-        uint posX = x * cast(uint)gridConfig.cellSizeX;
-        uint posY = y * cast(uint)gridConfig.cellSizeY;
+        int posX = x * cast(int)gridConfig.cellSizeX;
+        int posY = y * cast(int)gridConfig.cellSizeY;
 
         ctx.setSourceSurface(ghost ? tile.gtkGhost : tile.gtkSurface, 
             hflip ? -posX : posX, 

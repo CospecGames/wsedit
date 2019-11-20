@@ -6,19 +6,35 @@ import gtk.Image;
 import gtk.Widget;
 import dazzle.EntryBox;
 import gtk.ButtonBox;
+import wsedit.tools;
+
+/**
+    A button representing a tool
+*/
+class ToolButton : ToggleButton {
+private:
+    Tool tool;
+
+public:
+    Tool getTool() {
+        return tool;
+    }
+
+    this(Tool tool) {
+        this.tool = tool;
+        this.setName(tool.name~" Tool");
+        this.setImage(new Image(tool.iconName, IconSize.MENU));
+    }
+}
 
 class Toolbox : Box {
 private:
     Label titleBox;
 
     Box buttons;
-    ToggleButton[] tools;
-    ToggleButton activeTool;
+    ToolButton[] tools;
+    ToolButton activeTool;
 
-    ToggleButton selectToolButton;
-    ToggleButton tileToolButton;
-    ToggleButton objectToolButton;
-    ToggleButton parallaxRegionTool;
     bool isUpdating;
 
     bool toolHoverHandler(Widget widget) {
@@ -27,11 +43,11 @@ private:
     }
 
     bool toolLeaveHandler(Widget widget) {
-        titleBox.setText(activeTool.getName());
+        titleBox.setText(activeTool is null ? "" : activeTool.getName());
         return false;
     }
 
-    void activationHandler(ToggleButton button) {
+    void activationHandler(ToolButton button) {
         if (!isUpdating) {
             isUpdating = true;
             activeTool = button;
@@ -63,49 +79,26 @@ public:
         buttons = new Box(Orientation.HORIZONTAL, 0);
         buttons.getStyleContext().addClass("linked");
 
-        selectToolButton = new ToggleButton();
-        selectToolButton.setName("Select Tool");
-        selectToolButton.setImage(new Image("edit-select-all-symbolic", IconSize.MENU));
-        selectToolButton.addOnEnterNotify((GdkEventCrossing*, _) { return toolHoverHandler(selectToolButton); });
-        selectToolButton.addOnLeaveNotify((GdkEventCrossing*, _) { return toolLeaveHandler(selectToolButton); });
-        selectToolButton.addOnToggled(&activationHandler);
-        activeTool = selectToolButton;
-
-        tileToolButton = new ToggleButton();
-        tileToolButton.setName("Tile Tool");
-        tileToolButton.setImage(new Image("view-grid-symbolic", IconSize.MENU));
-        tileToolButton.addOnEnterNotify((GdkEventCrossing*, _) { return toolHoverHandler(tileToolButton); });
-        tileToolButton.addOnLeaveNotify((GdkEventCrossing*, _) { return toolLeaveHandler(tileToolButton); });
-        tileToolButton.addOnToggled(&activationHandler);
-
-        objectToolButton = new ToggleButton();
-        objectToolButton.setName("Actor Tool");
-        objectToolButton.setImage(new Image("insert-object-symbolic", IconSize.MENU));
-        objectToolButton.addOnEnterNotify((GdkEventCrossing*, _) { return toolHoverHandler(objectToolButton); });
-        objectToolButton.addOnLeaveNotify((GdkEventCrossing*, _) { return toolLeaveHandler(objectToolButton); });
-        objectToolButton.addOnToggled(&activationHandler);
-
-        parallaxRegionTool = new ToggleButton();
-        parallaxRegionTool.setName("Parallax Tool");
-        parallaxRegionTool.setImage(new Image("insert-image-symbolic", IconSize.MENU));
-        parallaxRegionTool.addOnEnterNotify((GdkEventCrossing*, _) { return toolHoverHandler(parallaxRegionTool); });
-        parallaxRegionTool.addOnLeaveNotify((GdkEventCrossing*, _) { return toolLeaveHandler(parallaxRegionTool); });
-        parallaxRegionTool.addOnToggled(&activationHandler);
-
-        tools = [selectToolButton, tileToolButton, objectToolButton, parallaxRegionTool];
-
-        buttons.packStart(selectToolButton, false, false, 0);
-        buttons.packStart(tileToolButton, false, false, 0);
-        buttons.packStart(objectToolButton, false, false, 0);
-        buttons.packStart(parallaxRegionTool, false, false, 0);
-        selectToolButton.setActive(true);
-
-
         this.packStart(buttons, false, false, 0);
         this.packEnd(titleBox, false, false, 0);
+    }
 
-        // Activate select tool by default
-        selectToolButton.setActive(true);
+    void addTool(Tool tool) {
+        ToolButton button = new ToolButton(tool);
+        button.addOnEnterNotify((GdkEventCrossing*, _) { return toolHoverHandler(button); });
+        button.addOnLeaveNotify((GdkEventCrossing*, _) { return toolLeaveHandler(button); });
+        button.addOnToggled((_) { activationHandler(button); });
+        tools ~= button;
+        buttons.packStart(button, false, false, 0);
+    }
+
+    void activateTool(uint index) {
+        tools[index].setActive(true);
+        activeTool = tools[index];
         titleBox.setText(activeTool.getName());
+    }
+
+    Tool currentTool() {
+        return activeTool !is null ? activeTool.getTool() : null;
     }
 }
