@@ -68,7 +68,7 @@ private:
         }
 
         // We're done with it.
-        destroy(matrix);
+        xdestroy(matrix);
 
         // Draw the outline around the currently selected tile
         auto pos = workspace.tiles.position;
@@ -174,4 +174,8 @@ public:
     }
 
 
+}
+
+void xdestroy(T)(T item) {
+    destroy(item);
 }

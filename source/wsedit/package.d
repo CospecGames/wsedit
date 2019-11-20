@@ -41,6 +41,52 @@ struct Selection {
 }
 
 /**
+    A point in 2D space
+*/
+struct Vector2 {
+
+    /**
+        X coordinate
+    */
+    double x = 0.0;
+
+    /**
+        Y coordinate
+    */
+    double y = 0.0;
+}
+
+/**
+    The 2D camera in the workspace
+*/
+struct Camera2D {
+    /**
+        Position of camera
+    */
+    Vector2 position;
+
+    /**
+        Origin of camera transform on-screen
+    */
+    Vector2 origin;
+
+    /**
+        Zoom level
+    */
+    double zoom = 1;
+
+    /**
+        Translates from cordinates from camera coordinates to scene coordinates
+    */
+    Vector2 toScene(Vector2 coords) {
+        return Vector2(
+            ((coords.x/zoom)-(origin.x == 0.0 ? 0 : origin.x/zoom))-position.x,
+            ((coords.y/zoom)-(origin.y == 0.0 ? 0 : origin.y/zoom))-position.y
+        );
+    }
+}
+
+/**
     The model where the state is stored in
 */
 struct StateModel {
@@ -50,26 +96,6 @@ struct StateModel {
 
     /// Wether the app is in fullscreen mode
     bool fullscreen;
-}
-
-/**
-    The 2D camera in the workspace
-*/
-struct Camera2D {
-    /**
-        X coordinate
-    */
-    double x = 0;
-
-    /**
-        Y coordinate
-    */
-    double y = 0;
-
-    /**
-        Zoom level
-    */
-    double zoom = 1;
 }
 
 /**

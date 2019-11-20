@@ -102,6 +102,20 @@ struct WSESceneInfo {
         Height of a single tile
     */
     uint tileHeight;
+
+    /**
+        Calculate width in pixels
+    */
+    uint calculatedWidth() {
+        return width*tileWidth;
+    }
+
+    /**
+        Calculate height in pixels
+    */
+    uint calculatedHeight() {
+        return height*tileHeight;
+    }
 }
 
 /**

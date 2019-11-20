@@ -17,9 +17,21 @@ struct Tile {
     ImageSurface gtkSurface;
 
     /**
+        The GTK surface generated for ghost versions in the viewport
+    */
+    ImageSurface gtkGhost;
+
+    /**
         The root image
     */
     Image rootImage;
+
+    /**
+        The collission mask for the tile
+
+        TODO: Currently not implemented
+    */
+    Image collisionMask;
 
     /**
         The ID of the tile
@@ -37,6 +49,17 @@ struct Tile {
         surfaceImg.rgbaToBgra();
         gtkSurface = ImageSurface.createForData(
             surfaceImg.pixelData.ptr, 
+            cairo_format_t.ARGB32, 
+            cast(int)image.width,
+            cast(int)image.height,
+            ImageSurface.formatStrideForWidth(cairo_format_t.ARGB32, cast(int)image.width));
+
+        // Clone the other image and ghostify it
+        auto ghostImg = surfaceImg.clone();
+        ghostImg.ghostify();
+        ghostImg.premultiply();
+        gtkGhost = ImageSurface.createForData(
+            ghostImg.pixelData.ptr, 
             cairo_format_t.ARGB32, 
             cast(int)image.width,
             cast(int)image.height,
@@ -85,9 +108,9 @@ public:
         Add a tile to the layout
     */
     bool addTile(Tile* tile, string id) {
+        
         // Make sure we don't add the same tile twice
         if (!idAvailable(id)) return false;
-        writeln("Adding ", id);
 
         // Make more space
         if (tiles.length >= sizeX*sizeY) {

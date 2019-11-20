@@ -21,7 +21,14 @@ public:
         renderer = new Renderer(this);
 
         this.addOnDraw((Scoped!Context ctx, _) {
-            return renderer.renderLogo(ctx, "No scene loaded!");
+
+            // Start and end the render
+            renderer.begin(ctx);
+            scope(exit) renderer.end();
+
+            // Render the logo
+            return renderer.renderLogo("No scene loaded!");
+            
         });
 
         

@@ -11,6 +11,7 @@
 */
 module wsedit.workspace;
 import wsedit.subsystem.wsrenderer;
+import wsedit.subsystem.mouse;
 import wsedit.fmt;
 import wsedit.widgets;
 import wsedit;
@@ -64,14 +65,27 @@ public:
     uint pageNumber;
 
     /**
+        The camera
+    */
+    Camera2D camera;
+
+    /**
+        Mouse cursor
+    */
+    Mouse mouse;
+
+    /**
         Creates a new workspace
     */
     this(WSEProject project) {
         super(Orientation.HORIZONTAL, 0);
         this.project = project;
 
+        // Place camera at center of scene
+
+        mouse = new Mouse();
         tiles = new TileManager();
-        viewport = new WSViewport();
+        viewport = new WSViewport(this);
         renderer = new Renderer(viewport);
         overlay = new Overlay();
         toolbox = new Toolbox();
@@ -79,18 +93,73 @@ public:
         toolbox.setHalign(Align.START);
         overlay.add(viewport);
         overlay.addOverlay(toolbox);
+        
+        GridConfig gridConfig;
+        gridConfig.cellSizeX = project.sceneInfo.tileWidth;
+        gridConfig.cellSizeY = project.sceneInfo.tileHeight;
+        gridConfig.cellsX = project.sceneInfo.width;
+        gridConfig.cellsY = project.sceneInfo.height;
+        renderer.setGridConfig(gridConfig);
+
+        // Test tool
+        import wsedit.tools.tiletool;
+        TileTool tiletool = new TileTool(this);
 
         import gtk.Widget : Widget;
         import gdk.FrameClock : FrameClock;
         viewport.addTickCallback((Widget, FrameClock) {
+            viewport.update();
+            tiletool.update(mouse);
             queueDraw();
+            mouse.feedScroll(0);
             return true;
+        });
+
+        viewport.addOnSizeAllocate((req, _) {
+            camera.origin = Vector2(req.width/2, req.height/2);
+        });
+
+        /* Mouse controls */
+        viewport.addOnMotionNotify((GdkEventMotion* ev, _) {
+            mouse.feedPosition(Vector2(ev.x, ev.y));
+            return false;
+        });
+
+        viewport.addOnButtonPress((GdkEventButton* ev, Widget) {
+            mouse.feedPosition(Vector2(ev.x, ev.y));
+            mouse.feedPress(ev.button);
+            return false;
+        });
+
+        viewport.addOnButtonRelease((GdkEventButton* ev, Widget) {
+            mouse.feedPosition(Vector2(ev.x, ev.y));
+            mouse.feedRelease(ev.button);
+            return false;
+        });
+
+        viewport.addOnScroll((GdkEventScroll* ev, Widget) {
+            mouse.feedPosition(Vector2(ev.x, ev.y));
+            mouse.feedScroll(ev.direction == ScrollDirection.UP ? -1 : 1);
+            return false;
         });
 
         /* Draw */
         import cairo.Context : Context;
         viewport.addOnDraw((Scoped!Context ctx, Widget _) {
-            return false; //renderer.render(ctx);
+            renderer.begin(ctx);
+                renderer.applyCamera(camera);
+                renderer.renderGrid();
+            renderer.end();
+
+            // Render tiles
+            renderer.setAntiAlias(false);
+            renderer.begin(ctx);
+                renderer.applyCamera(camera);
+
+                tiletool.draw(renderer);
+
+            renderer.end();
+            return false; 
         });
 
         sidebar = new Sidebar(this);

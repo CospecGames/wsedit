@@ -63,6 +63,27 @@ void premultiply(ref ubyte[] arr) {
 }
 
 /**
+    Ghostify texture by setting higher alpha to a specific value
+*/
+void ghostify(ref Image image) {
+    ghostify(image.pixelData);
+}
+
+/**
+    Ghostify texture by setting higher alpha to a specific value
+*/
+void ghostify(ref ubyte[] arr, ubyte ghostLevel = 128) {
+    foreach(i; 0..arr.length/4) {
+        size_t a = (i*4)+3;
+        
+        // Only apply to parts of the image that are more opaque than our ghostLevel
+        if (arr[a] > ghostLevel) {
+            arr[a] = cast(ubyte)(ghostLevel);
+        }
+    }
+}
+
+/**
     Cairo expects BGRA while imageformats loads as RGBA
     Reverses the RGB components.
 */
@@ -79,5 +100,28 @@ void rgbaToBgra(ref ubyte[] arr) {
         size_t r = (i*4);
         size_t b = r+3;
         reverse(arr[r..b]);
+    }
+}
+
+/**
+    Flips the data vertically
+*/
+void flipVertical(ref ubyte[] arr, size_t width) {
+    ubyte[] tmp;
+    foreach_reverse(y; 0..arr.length/width) {
+        size_t offset = y*width;
+        tmp ~= arr[offset..offset+width];
+    }
+    // Flipping is complete
+    arr = tmp;
+}
+
+/**
+    Flips the data horizontally
+*/
+void flipHorizontal(ref ubyte[] arr, size_t width) {
+    foreach_reverse(y; 0..arr.length/width) {
+        size_t offset = y*width;
+        reverse(arr[offset..offset+width]);
     }
 }
