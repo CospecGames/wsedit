@@ -20,7 +20,7 @@ class WSAboutDialog : AboutDialog {
     this() {
         this.setAuthors(["Cospec Games", "Luna Nielsen"]);
         this.setCopyright("Copyright © 2019, Cospec Games");
-        this.setLogo(new Pixbuf("res/wereshift.png"));
+        this.setLogo(new Pixbuf("res/logo.png"));
         this.setVersion("1.0.0");
         this.setLicenseType(GtkLicense.BSD);
         this.setProgramName("Wereshift Scene Editor");

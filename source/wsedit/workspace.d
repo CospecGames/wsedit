@@ -90,8 +90,8 @@ public:
         renderer = new Renderer(viewport);
         overlay = new Overlay();
         toolbox = new Toolbox();
-        toolbox.addTool(new TileTool(this));
-        toolbox.addTool(new EraseTool(this));
+        toolbox.addGroup(new TileGroup(this));
+        toolbox.addGroup(new CameraGroup(this));
         toolbox.setValign(Align.START);
         toolbox.setHalign(Align.START);
         overlay.add(viewport);
@@ -108,7 +108,7 @@ public:
         import gdk.FrameClock : FrameClock;
         viewport.addTickCallback((Widget, FrameClock) {
             viewport.update();
-            if (toolbox.currentTool() !is null) toolbox.currentTool().update(mouse);
+            if (toolbox.getCurrentTool() !is null) toolbox.getCurrentTool().update(mouse);
             queueDraw();
             mouse.feedScroll(0);
             return true;
@@ -167,7 +167,7 @@ public:
                     }
                 }
 
-                if (toolbox.currentTool() !is null) toolbox.currentTool().draw(renderer);
+                if (toolbox.getCurrentTool() !is null) toolbox.getCurrentTool().draw(renderer);
 
             renderer.end();
             return false; 

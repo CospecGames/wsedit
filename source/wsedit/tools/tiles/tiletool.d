@@ -1,12 +1,12 @@
-module wsedit.tools.erasetool;
+module wsedit.tools.tiles.tiletool;
 import wsedit.tools;
 import wsedit;
 import wsedit.fmt;
 
 /**
-    Eraser tool
+    Tile tool
 */
-class EraseTool : Tool {
+class TileTool : Tool {
 private:
     uint mouseX;
     uint mouseY;
@@ -16,23 +16,17 @@ private:
 
 
 public:
-    this(Workspace workspace) {
-        super("Erase Tile", "edit-delete-symbolic", workspace);
+    this(Workspace workspace, ToolGroup group) {
+        super("Tile Tool", "insert-object-symbolic", group, workspace);
     }
 
     override void draw(Renderer renderer) {
 
         uint scWidth =  workspace.project.sceneInfo.width;
         uint scHeight = workspace.project.sceneInfo.height;
-        
-        uint width =  workspace.project.sceneInfo.tileWidth;
-        uint height = workspace.project.sceneInfo.tileHeight;
-
-        uint msX = mouseX*width;
-        uint msY = mouseY*height;
 
         if (!(mouseX >= 0 && mouseY >= 0 && mouseX < scWidth && mouseY < scHeight)) return;
-        renderer.renderSelection(Selection(msX, msY, width, height));
+        renderer.renderTile(workspace.tiles.selected, mouseX, mouseY, workspace.tiles.hflip, workspace.tiles.vflip, true);
     }
 
     override void update(Mouse mouse) {
@@ -55,11 +49,17 @@ public:
         if (lastMouseX == mouseX && lastMouseY == mouseY) return;
 
         if (mouse.isButtonPressed(MouseButton.Left)) {
-            workspace.project.scene.layers[0].removeTileAt(mouseX, mouseY);
+            WSETile tile;
+            tile.hflip = workspace.tiles.hflip;
+            tile.vflip = workspace.tiles.vflip;
+            tile.tileIdX = workspace.tiles.position().x;
+            tile.tileIdY = workspace.tiles.position().y;
+            tile.x = mouseX;
+            tile.y = mouseY;
+            workspace.project.scene.layers[0].place(tile);
 
             lastMouseX = mouseX;
             lastMouseY = mouseY;
-            
         }
 
         if (mouse.isButtonReleased(MouseButton.Left)) {
