@@ -86,6 +86,7 @@ public:
         Applies camera transform to the rendering
     */
     void applyCamera(Camera2D camera) {
+        this.camera = camera;
         ctx.translate(camera.origin.x, camera.origin.y);
         ctx.scale(camera.zoom, camera.zoom);
         ctx.translate(camera.position.x, camera.position.y);
@@ -119,11 +120,13 @@ public:
     /**
         Renders a grid
     */
-    bool renderGrid(double offsetX = 0, double offsetY = 0) {
+    bool renderGrid(Rectangle gridArea) {
         ctx.newPath();
 
-        double width = gridConfig.cellsX*gridConfig.cellSizeX;
-        double height = gridConfig.cellsY*gridConfig.cellSizeY;
+        double posX = gridArea.x*cast(int)gridConfig.cellSizeX;
+        double posY = gridArea.y*cast(int)gridConfig.cellSizeY;
+        double width = gridArea.width*cast(int)gridConfig.cellSizeX;
+        double height = gridArea.height*cast(int)gridConfig.cellSizeY;
 
         // Apply config
         this.setColor(gridConfig.gridColor);
@@ -131,7 +134,7 @@ public:
         ctx.setLineCap(cairo_line_cap_t.ROUND);
 
         // Draw outside box
-        ctx.moveTo(offsetX, offsetY);
+        ctx.moveTo(posX, posY);
         ctx.relLineTo(width, 0);
         ctx.relLineTo(0, height);
         ctx.relLineTo(-width, 0);
@@ -142,15 +145,15 @@ public:
         ctx.setLineWidth(gridConfig.innerThickness);
 
         // Draw internal lines on the X axis
-        foreach(y; 0..gridConfig.cellsY+1) {
-            ctx.moveTo(offsetX, offsetY+(y*gridConfig.cellSizeY));
+        foreach(y; 0..gridArea.height+1) {
+            ctx.moveTo(posX, posY+(y*gridConfig.cellSizeY));
             ctx.relLineTo(width, 0);
             ctx.stroke();
         }
 
         // Draw internal lines on the y axis
-        foreach(x; 0..gridConfig.cellsX+1) {
-            ctx.moveTo(offsetX+(x*gridConfig.cellSizeX), offsetY);
+        foreach(x; 0..gridArea.width+1) {
+            ctx.moveTo(posX+(x*gridConfig.cellSizeX), posY);
             ctx.relLineTo(0, height);
             ctx.stroke();
         }
@@ -164,7 +167,7 @@ public:
         ctx.newPath();
 
         // Set config
-        ctx.setSourceRgb(.5, .5, .8);
+        this.setColor(MAIN_SEL_COLOR);
         ctx.setLineCap(cairo_line_cap_t.ROUND);
         ctx.setLineJoin(cairo_line_join_t.ROUND);
         ctx.setLineWidth(4);
@@ -186,9 +189,138 @@ public:
     }
 
     /**
+        Renders a badge
+    */
+    void renderBadge(string text, Vector2 position, double scale = 1, Color bgColor = MAIN_BDG_COLOR, Color fgColor = MAIN_BDG_TXT_COLOR) {
+
+        cairo_text_extents_t extents;
+        ctx.textExtents(text, &extents);
+
+        int posX = cast(int)(position.x-(extents.width/2));
+        int posY = cast(int)(position.y-(extents.height/2));
+
+        this.renderBadge(text, Rectangle(posX-8, posY-8, cast(int)extents.width+8, cast(int)extents.height+8), scale, bgColor, fgColor);
+    }
+
+    /**
+        Renders a badge
+    */
+    void renderBadge(string text, Rectangle area, double scale = 1, Color bgColor = MAIN_BDG_COLOR, Color fgColor = MAIN_BDG_TXT_COLOR) {
+        // We're going to do extra transformations here
+        ctx.getMatrix(tmpMatrix);
+        ctx.scale(scale, scale);
+
+        ctx.newPath();
+
+        area.x = cast(int)(cast(double)area.x/scale);
+        area.y = cast(int)(cast(double)area.y/scale);
+
+        double basisX = (area.x+(area.width/2));
+        double basisY = (area.y+(area.height/2));
+
+        ctx.setLineCap(cairo_line_cap_t.ROUND);
+        ctx.setLineJoin(cairo_line_join_t.ROUND);
+        ctx.setLineWidth(4);
+        this.setColor(bgColor);
+
+        ctx.moveTo(area.x, area.y);
+        ctx.relLineTo(area.width, 0);
+        ctx.relLineTo(0, area.height);
+        ctx.relLineTo(-area.width, 0);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.moveTo(area.x-2, area.y-2);
+        ctx.relLineTo(area.width+4, 0);
+        ctx.relLineTo(0, area.height+4);
+        ctx.relLineTo(-(area.width+4), 0);
+        ctx.closePath();
+        ctx.stroke();
+
+        cairo_text_extents_t extents;
+        ctx.textExtents(text, &extents);
+        
+        this.setColor(fgColor);
+        ctx.moveTo(basisX-(extents.width/2), basisY+(extents.height/2));
+        ctx.showText(text);
+
+        // Revert to normal
+        ctx.setMatrix(tmpMatrix);
+    }
+
+    /**
+        Renders a line between 2 points
+    */
+    void renderLine(Vector2 start, Vector2 stop, Color color, double width = 4) {
+        ctx.newPath();
+
+        this.setColor(color);
+        ctx.setLineWidth(width);
+        ctx.moveTo(start.x, start.y);
+        ctx.lineTo(stop.x, stop.y);
+        ctx.stroke();
+    }
+
+    /**
+        Renders a coordinate system that follows the camera
+    */
+    void renderCoordinateSystem() {
+        ctx.newPath();
+        ctx.setLineWidth(2/camera.zoom);
+
+        double posX = (-(
+                (camera.position.x)+
+                (camera.origin.x/camera.zoom)
+            )
+        );
+
+        double posY = (-(
+                (camera.position.y)+
+                (camera.origin.y/camera.zoom)
+            )
+        );
+        
+        double lenX = (camera.origin.x/camera.zoom)*2;
+        double lenY = (camera.origin.y/camera.zoom)*2;
+
+        ctx.setSourceRgb(0, 1, 0);
+        ctx.moveTo(posX, 0);
+        ctx.relLineTo(lenX, 0);
+        ctx.stroke();
+
+        ctx.setSourceRgb(1, 0, 0);
+        ctx.moveTo(0, posY);
+        ctx.relLineTo(0, lenY);
+        ctx.stroke();
+
+    }
+
+    /**
+        Renders a outline
+    */
+    bool renderOutline(Rectangle selection, Color color = MAIN_SEL_COLOR) {
+        ctx.newPath();
+
+        // Set config
+        this.setColor(color);
+        ctx.setLineCap(cairo_line_cap_t.ROUND);
+        ctx.setLineJoin(cairo_line_join_t.ROUND);
+        ctx.setLineWidth(4);
+        
+        ctx.moveTo(selection.x, selection.y);
+        ctx.relLineTo(selection.width, 0);
+        ctx.relLineTo(0, selection.height);
+        ctx.relLineTo(-selection.width, 0);
+        ctx.closePath();
+        ctx.stroke();
+
+        return true;
+    }
+
+    /**
         Renders a tile within the current grid settings
     */
-    bool renderTile(Tile* tile, uint x, uint y, bool hflip = false, bool vflip = false, bool ghost = false) {
+    bool renderTile(TileMgrTile* tile, uint x, uint y, bool hflip = false, bool vflip = false, bool ghost = false) {
         
         // We're going to do extra transformations here
         ctx.getMatrix(tmpMatrix);
@@ -290,6 +422,16 @@ enum MAIN_SEL_COLOR = Color(0.4, 0.4, 0.6, 1.0);
 enum MAIN_LINE_COLOR = Color(0.5, 0.5, 0.5, 1.0);
 
 /**
+    Main badge color
+*/
+enum MAIN_BDG_COLOR = Color(0.05, 0.05, 0.05, .9);
+
+/**
+    Main badge text color
+*/
+enum MAIN_BDG_TXT_COLOR = Color(1, 1, 1, 1);
+
+/**
     Contains color
 */
 struct Color {
@@ -320,16 +462,6 @@ struct Color {
     Configuration for grid rendering
 */
 struct GridConfig {
-    /**
-        How many cells to render in the X axis
-    */
-    size_t cellsX;
-
-    /**
-        How many cells to render in the Y axis
-    */
-    size_t cellsY;
-    
     /**
         The size of a cell on the X axis
     */

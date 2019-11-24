@@ -10,7 +10,7 @@ import std.stdio;
 /**
     A tile in the tileset
 */
-struct Tile {
+struct TileMgrTile {
     /**
         The GTK surface generated for use in the viewport
     */
@@ -86,7 +86,7 @@ struct TileLayoutPos {
 class TileLayout {
 private:
 
-    Tile*[TileLayoutPos] tiles;
+    TileMgrTile*[TileLayoutPos] tiles;
 
     uint sizeX = 0;
     uint sizeY = 0;
@@ -107,7 +107,7 @@ public:
     /**
         Add a tile to the layout
     */
-    bool addTile(Tile* tile, string id) {
+    bool addTile(TileMgrTile* tile, string id) {
         
         // Make sure we don't add the same tile twice
         if (!idAvailable(id)) return false;
@@ -149,7 +149,7 @@ public:
     /**
         Get a tile from the layout
     */
-    Tile* getTile(uint x, uint y) {
+    TileMgrTile* getTile(uint x, uint y) {
         if (TileLayoutPos(x, y) !in tiles) return null;
         return tiles[TileLayoutPos(x, y)];
     }
@@ -165,9 +165,9 @@ public:
     /**
         Allow iterating over tiles
     */
-    int opApply(int delegate(ref TileLayoutPos, Tile*) operations) {
+    int opApply(int delegate(ref TileLayoutPos, TileMgrTile*) operations) {
         int result = 0;
-        foreach(TileLayoutPos key, Tile* value; tiles) {
+        foreach(TileLayoutPos key, TileMgrTile* value; tiles) {
             result = operations(key, value);
 
             if (result) break;
@@ -182,7 +182,7 @@ public:
 */
 class TileManager {
 private:
-    Tile* selectedTile;
+    TileMgrTile* selectedTile;
     TileLayoutPos selectedPosition;
 
 public:
@@ -202,7 +202,7 @@ public:
     /**
         Gets the currently selected tile
     */
-    Tile* selected() {
+    TileMgrTile* selected() {
         return selectedTile;
     }
 
@@ -240,7 +240,7 @@ public:
                 immutable(size_t) x = xp*tileWidth;
                 immutable(size_t) y = yp*tileHeight;
                 
-                layout.addTile(new Tile(image.getSubImage(x, y, tileWidth, tileHeight)), "%s-%s-%s".format(file.baseName, xp, yp));
+                layout.addTile(new TileMgrTile(image.getSubImage(x, y, tileWidth, tileHeight)), "%s-%s-%s".format(file.baseName, xp, yp));
             }
         }
 

@@ -5,6 +5,7 @@ public import wsedit.subsystem.mouse;
 
 public import wsedit.tools.tiles;
 public import wsedit.tools.camera;
+public import wsedit.tools.regions;
 
 /**
     A tool provides functionality on the canvas
@@ -43,6 +44,13 @@ public:
     abstract void draw(Renderer renderer);
 
     /**
+        Virtual post-draw function
+
+        Draws without camera, for HUD elements
+    */
+    void postDraw(Renderer renderer) { }
+
+    /**
         Update the tool
     */
     abstract void update(Mouse mouse);
@@ -70,6 +78,24 @@ public:
         Name of the tool's icon
     */
     immutable(string) iconName;
+
+    /**
+        Draw group related UI on to the canvas
+        Selections, etc.
+    */
+    void draw(Renderer renderer) { }
+
+    /**
+        Update the group
+    */
+    void update(Mouse mouse) { }
+
+    /**
+        Virtual post-draw function
+
+        Draws without camera, for HUD elements
+    */
+    void postDraw(Renderer renderer) { }
 
     /**
         Tools in the tool group

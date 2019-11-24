@@ -23,7 +23,7 @@ public:
         this.page = page;
         this.workspace = workspace;
 
-        title = new Label(workspace.project.name);
+        title = new Label(workspace.scene.name);
         title.setHalign(Align.START);
 
         closeButton = new Button();
@@ -66,7 +66,7 @@ public:
 
         this.addOnPageRemoved((w, _, __) {
             Workspace workspace = cast(Workspace)w;
-            workspace.project.save(workspace.project.path);
+            //workspace.project.save(workspace.project.path);
 
             // Update all the page numbers
             foreach(i; 0..this.getNPages()) {
@@ -81,7 +81,7 @@ public:
 
         this.addOnChangeCurrentPage((i, _) {
             Workspace workspace = cast(Workspace)getNthPage(i);
-            window.updateTitle(workspace.project.name);
+            window.updateTitle(workspace.scene.name);
             return true;
         });
     }

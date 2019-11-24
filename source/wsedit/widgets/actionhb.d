@@ -9,27 +9,42 @@
 
     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-module wsedit.fmt.tile;
+module wsedit.widgets.actionhb;
+import gtk.HeaderBar;
+import gtk.Button;
+import gtk.Image;
+import gtk.Box;
+import gtk.Label;
 
-/**
-    A wereshift tile
-*/
-struct WSETile {
-    /// Tile X ID
-    uint tileIdX;
+import wsedit;
+import wsedit.widgets;
+import wsedit.helpers;
+import wsedit.windows.appwin;
 
-    /// Tile Y ID
-    uint tileIdY;
+class WSActionHeader : HeaderBar {
+private:
+    WSEditWindow appwin;
+    Button backButton;
+    
+public:
+    /// Constructor
+    this(WSEditWindow appwin) {
+        this.appwin = appwin;
 
-    /// Allow vertical flipping
-    bool vflip;
+        this.setShowCloseButton(true);
 
-    /// Allow horizontal flipping
-    bool hflip;
+        backButton = new Button();
 
-    /// X coordinate of tile
-    uint x;
+        backButton.setImage(new Image("go-previous-symbolic", IconSize.MENU));
+        this.packStart(backButton);
+    }
 
-    /// Y coordinate of tile
-    uint y;
+    /**
+        Calls the specified back function when released
+    */
+    void addOnBackReleased(void delegate() func) {
+        backButton.addOnReleased((_) {
+            func();
+        });
+    }
 }

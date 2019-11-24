@@ -28,7 +28,7 @@ import wsedit.widgets;
 import wsedit.workspace;
 import wsedit.helpers;
 import wsedit;
-import wsedit.fmt;
+import wsedit.ir;
 
 /**
     Wereshift editor new scene Popover
@@ -51,6 +51,8 @@ private:
     Label title;
 
     void createSetup() {
+        Box mainBox = new Box(Orientation.VERTICAL, 0);
+
         grid = new ThreeGrid();
 
         nameEntry = new Entry();
@@ -97,15 +99,17 @@ private:
                 }
             }
 
-            WSESceneInfo sceneInfo;
-            sceneInfo.tileWidth =   defaultSize.getX!uint;
-            sceneInfo.tileHeight =  defaultSize.getY!uint;
-            sceneInfo.width =       sceneSize.getX!uint;
-            sceneInfo.height =      sceneSize.getY!uint;
-
             // Create workspace and save it.
-            Workspace workspace = new Workspace(newProject(nameEntry.getText(), file, sceneInfo));
-            workspace.project.save();
+            Workspace workspace = new Workspace(
+                new Scene(
+                    nameEntry.getText(),
+                    file, 
+                    Vector2i(
+                        defaultSize.getX!uint, 
+                        defaultSize.getY!uint
+                    )
+                )
+            );
 
             window.workspaces.addWorkspace(workspace);
             window.to("workspacesPage");
@@ -118,35 +122,45 @@ private:
             reset();
         });
 
-        title = addTitle("New Scene");
 
         addOption(0, new Label("Scene Name"), nameEntry);
         addOption(1, new Label("Scene File"), pathBox);
         addOption(2, new Label("Default Tile Size"), defaultSize);
-        addOption(3, new Label("Scene Size"), sceneSize);
-        addButtons(5, cancelScene, createScene);
+        addButtons(5, null, createScene);
 
         grid.setRowSpacing(24);
         grid.setColumnSpacing(24);
         grid.setHalign(Align.FILL);
-        grid.setMarginTop(72);
+        grid.setMarginTop(32);
         grid.setMarginLeft(128);
         grid.setMarginRight(72);
-        this.add(grid);
+
+        title = addTitle("New Scene");
+        mainBox.packStart(title, false, false, 0);
+        mainBox.packStart(grid, false, false, 0);
+        mainBox.setMarginTop(72);
+        mainBox.setMarginBottom(72);
+
+        this.add(mainBox);
     }
 
     void addOption(uint row, Label title, Widget child) {
         title.setHalign(Align.END);
         child.setHalign(Align.FILL);
-        grid.addAt(title, row+1, ThreeGridColumn.LEFT);
-        grid.addAt(child, row+1, ThreeGridColumn.CENTER);
+        grid.addAt(title, row, ThreeGridColumn.LEFT);
+        grid.addAt(child, row, ThreeGridColumn.CENTER);
     }
 
     void addButtons(uint row, Button buttonA, Button buttonB) {
-        buttonA.setHalign(Align.END);
-        buttonB.setHalign(Align.END);
-        grid.addAt(buttonA, row+1, ThreeGridColumn.LEFT);
-        grid.addAt(buttonB, row+1, ThreeGridColumn.CENTER);
+        if (buttonA !is null) {
+            buttonA.setHalign(Align.END);
+            grid.addAt(buttonA, row, ThreeGridColumn.LEFT);
+        }
+        
+        if (buttonB !is null) {
+            buttonB.setHalign(Align.END);
+            grid.addAt(buttonB, row, ThreeGridColumn.CENTER);
+        }
     }
 
     Label addTitle(string text) {
@@ -154,14 +168,14 @@ private:
 
         // Set layout
         lbl.setHalign(Align.CENTER);
-        lbl.setMarginBottom(32);
+        lbl.setValign(Align.END);
+        //lbl.setMarginTop(128);
 
         // Set text
         lbl.setUseMarkup(true);
         lbl.setMarkup("<span size='xx-large' weight='bold'>%s</span>".format(text));
 
         // Add and return
-        grid.addAt(lbl, 0, ThreeGridColumn.CENTER);
         return lbl;
     }
 

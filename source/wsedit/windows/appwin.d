@@ -46,11 +46,18 @@ private:
     Stack stack;
     string[] pageStack;
 
+    Stack hbStack;
+
 public:
     /**
         The header bar
     */
     WSHeader header;
+
+    /**
+        Action header
+    */
+    WSActionHeader actionHeader;
 
     /**
         The list of current open workspaces
@@ -69,7 +76,17 @@ public:
         setupActions();
 
         stack = new Stack();
+        hbStack = new Stack();
+
         header = new WSHeader(this);
+        actionHeader = new WSActionHeader(this);
+        actionHeader.addOnBackReleased(() {
+            pop();
+        });
+
+        hbStack.addNamed(header, "mainhb");
+        hbStack.addNamed(actionHeader, "actionhb");
+        hbStack.setTransitionType(StackTransitionType.CROSSFADE);
 
 
         workspaces = new WSWorkspacesPage(this);
@@ -78,7 +95,7 @@ public:
         stack.addNamed(new WSPageInit(), "initPage");
 
         // Add the components and show them.
-        this.setTitlebar(header);
+        this.setTitlebar(hbStack);
         this.add(stack);
         this.setIconFromFile("res/logo.png");
         this.setWmclass("Wereshift Scene Editor", "WSEdit");
@@ -93,6 +110,7 @@ public:
         Switches to screen and resets stack
     */
     void to(string screen) {
+        hbStack.setVisibleChildName("mainhb");
         pageStack.length = 0;
         stack.setTransitionType(StackTransitionType.CROSSFADE);
         stack.setVisibleChildName(screen);
@@ -102,6 +120,8 @@ public:
         Pushes screen to stack
     */
     void push(string screen) {
+        hbStack.setVisibleChildName("actionhb");
+        
         if (pageStack.length > 0 && pageStack[$-1] == screen) return;
         stack.setTransitionType(StackTransitionType.CROSSFADE);
         pageStack ~= screen;
@@ -115,6 +135,10 @@ public:
         if (pageStack.length > 0) pageStack.length--;
         stack.setTransitionType(StackTransitionType.UNDER_DOWN);
         stack.setVisibleChildName(pageStack.length == 0 ? getSuitablePage() : pageStack[$-1]);
+
+        if (pageStack.length == 0) {
+            hbStack.setVisibleChildName("mainhb");
+        }
     }
 
     /**

@@ -26,8 +26,8 @@ private:
         ctx.setSourceRgba(0, 0, 0, 0);
         ctx.paint();
 
-        int tileWidth = workspace.project.sceneInfo.tileWidth;
-        int tileHeight = workspace.project.sceneInfo.tileHeight;
+        int tileWidth = workspace.scene.tileSize.x;
+        int tileHeight = workspace.scene.tileSize.y;
 
         // Update Size
         auto size = workspace.tiles.layout.getSize();
@@ -109,8 +109,8 @@ public:
             GdkEventButton* ev = evnt;
 
             if (ev.button == 1) {
-                int tileWidth = workspace.project.sceneInfo.tileWidth;
-                int tileHeight = workspace.project.sceneInfo.tileHeight;
+                int tileWidth = workspace.scene.tileSize.x;
+                int tileHeight = workspace.scene.tileSize.y;
                 uint xPos = (cast(uint)ev.x)/tileWidth;
                 uint yPos = (cast(uint)ev.y)/tileHeight;
 

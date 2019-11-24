@@ -40,10 +40,6 @@ public:
         return revealer;
     }
 
-    Box getInsertableBox() {
-        return childrenBox;
-    }
-
     this(Toolbox toolbox, ToolGroup group) {
         this.parent = toolbox;
         this.group = group;
@@ -87,7 +83,7 @@ public:
         this.revealer.add(childrenBox);
 
         this.setName(group.name);
-        this.setImage(new Image(group.iconName, IconSize.MENU));
+        this.setImage(new Image(group.iconName, IconSize.MENU),);
         this.getStyleContext().addClass("suggested-action");
     }
 
@@ -243,6 +239,13 @@ public:
     */
     void selectGroup(ToolGroup group) {
         this.currentGroup = group;
+    }
+
+    /**
+        Activates a group
+    */
+    void activateGroup(uint index) {
+        groups[index].activateGroup();
     }
 
 }

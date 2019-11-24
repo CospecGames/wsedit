@@ -12,7 +12,7 @@
 module wsedit.workspace;
 import wsedit.subsystem.wsrenderer;
 import wsedit.subsystem.mouse;
-import wsedit.fmt;
+import wsedit.ir;
 import wsedit.widgets;
 import wsedit;
 import wsedit.tools;
@@ -51,9 +51,9 @@ public:
     Renderer renderer;
 
     /**
-        The project attached to this workspace
+        The scene attached to this workspace
     */
-    WSEProject project;
+    Scene scene;
 
     /**
         The tile manager
@@ -64,6 +64,11 @@ public:
         The page number of this workspace
     */
     uint pageNumber;
+
+    /**
+        The currently selected region
+    */
+    Region selectedRegion;
 
     /**
         The camera
@@ -78,9 +83,9 @@ public:
     /**
         Creates a new workspace
     */
-    this(WSEProject project) {
+    this(Scene scene) {
         super(Orientation.HORIZONTAL, 0);
-        this.project = project;
+        this.scene = scene;
 
         // Place camera at center of scene
 
@@ -90,18 +95,22 @@ public:
         renderer = new Renderer(viewport);
         overlay = new Overlay();
         toolbox = new Toolbox();
+        toolbox.addGroup(new RegionsGroup(this));
         toolbox.addGroup(new TileGroup(this));
         toolbox.addGroup(new CameraGroup(this));
         toolbox.setValign(Align.START);
         toolbox.setHalign(Align.START);
+        toolbox.activateGroup(0);
         overlay.add(viewport);
         overlay.addOverlay(toolbox);
         
+        Color defGridColor = MAIN_LINE_COLOR;
+        Color errGridColor = Color(.9, .2, .2);
+
         GridConfig gridConfig;
-        gridConfig.cellSizeX = project.sceneInfo.tileWidth;
-        gridConfig.cellSizeY = project.sceneInfo.tileHeight;
-        gridConfig.cellsX = project.sceneInfo.width;
-        gridConfig.cellsY = project.sceneInfo.height;
+        gridConfig.cellSizeX = scene.tileSize.x;
+        gridConfig.cellSizeY = scene.tileSize.y;
+        gridConfig.gridColor = defGridColor;
         renderer.setGridConfig(gridConfig);
 
         import gtk.Widget : Widget;
@@ -109,6 +118,7 @@ public:
         viewport.addTickCallback((Widget, FrameClock) {
             viewport.update();
             if (toolbox.getCurrentTool() !is null) toolbox.getCurrentTool().update(mouse);
+            if (toolbox.getCurrentGroup() !is null) toolbox.getCurrentGroup().update(mouse);
             queueDraw();
             mouse.feedScroll(0);
             return true;
@@ -145,9 +155,19 @@ public:
         /* Draw */
         import cairo.Context : Context;
         viewport.addOnDraw((Scoped!Context ctx, Widget _) {
+            renderer.setAntiAlias(true);
             renderer.begin(ctx);
                 renderer.applyCamera(camera);
-                renderer.renderGrid();
+                renderer.renderCoordinateSystem();
+
+                foreach(Region region; scene.regions) {
+                    gridConfig.gridColor = defGridColor;
+                    if (region.isOverlapping) gridConfig.gridColor = errGridColor;
+                    if (region.area.x < 0 || region.area.y < 0) gridConfig.gridColor = errGridColor;
+
+                    renderer.setGridConfig(gridConfig);
+                    renderer.renderGrid(region.area);
+                }
             renderer.end();
 
             // Render tiles
@@ -155,12 +175,26 @@ public:
             renderer.begin(ctx);
                 renderer.applyCamera(camera);
 
-                foreach(layer; project.scene.layers) {
-                    foreach(tile; layer.tiles) {
+                foreach(Region region; scene.regions) {
+                    foreach(uint x, uint y, Tile tile; region.bgLayer) {
+                        if (tile is null) continue;
+
                         renderer.renderTile(
-                            tiles.layout.getTile(tile.tileIdX, tile.tileIdY),
-                            tile.x,
-                            tile.y,
+                            tiles.layout.getTile(tile.tileId.x, tile.tileId.y),
+                            region.area.x+x,
+                            region.area.y+y,
+                            tile.hflip,
+                            tile.vflip
+                        );
+                    }
+
+                    foreach(uint x, uint y, Tile tile; region.mainLayer) {
+                        if (tile is null) continue;
+
+                        renderer.renderTile(
+                            tiles.layout.getTile(tile.tileId.x, tile.tileId.y),
+                            region.area.x+x,
+                            region.area.y+y,
                             tile.hflip,
                             tile.vflip
                         );
@@ -168,7 +202,14 @@ public:
                 }
 
                 if (toolbox.getCurrentTool() !is null) toolbox.getCurrentTool().draw(renderer);
+                if (toolbox.getCurrentGroup() !is null) toolbox.getCurrentGroup().draw(renderer);
 
+            renderer.end();
+
+            renderer.setAntiAlias(true);
+            renderer.begin(ctx);
+                if (toolbox.getCurrentTool() !is null) toolbox.getCurrentTool().postDraw(renderer);
+                if (toolbox.getCurrentGroup() !is null) toolbox.getCurrentGroup().postDraw(renderer);
             renderer.end();
             return false; 
         });

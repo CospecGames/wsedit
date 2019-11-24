@@ -9,80 +9,27 @@
 
     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-module wsedit;
-import gtk.Window;
-import wsf.spec.scene;
-import wsedit.subsystem.tilemgr;
-public import wsedit.math;
+module wsp.fmt.tile;
 
 /**
-    The currently "selected" index
+    A wereshift tile
 */
-struct Selection {
-    /**
-        X index
-    */
-    double x;
+struct WSETile {
+    /// Tile X ID
+    uint tileIdX;
 
-    /**
-        Y index
-    */
-    double y;
+    /// Tile Y ID
+    uint tileIdY;
 
-    /**
-        X-end index
-    */
-    double toX;
+    /// Allow vertical flipping
+    bool vflip;
 
-    /**
-        Y-end index
-    */
-    double toY;
+    /// Allow horizontal flipping
+    bool hflip;
+
+    /// X coordinate of tile
+    uint x;
+
+    /// Y coordinate of tile
+    uint y;
 }
-
-/**
-    The 2D camera in the workspace
-*/
-struct Camera2D {
-    /**
-        Position of camera
-    */
-    Vector2 position;
-
-    /**
-        Origin of camera transform on-screen
-    */
-    Vector2 origin;
-
-    /**
-        Zoom level
-    */
-    double zoom = 1;
-
-    /**
-        Translates from camera coordinates to scene coordinates
-    */
-    Vector2 toScene(Vector2 coords) {
-        return Vector2(
-            ((coords.x/zoom)-(origin.x == 0.0 ? 0 : origin.x/zoom))-position.x,
-            ((coords.y/zoom)-(origin.y == 0.0 ? 0 : origin.y/zoom))-position.y
-        );
-    }
-}
-
-/**
-    The model where the state is stored in
-*/
-struct StateModel {
-
-    /// The main app window
-    Window mainWindow;
-
-    /// Wether the app is in fullscreen mode
-    bool fullscreen;
-}
-
-/**
-    The global application state
-*/
-__gshared StateModel STATE;
