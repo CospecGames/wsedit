@@ -5,12 +5,13 @@ import std.format;
 
 public import wsedit.tools.regions.regiontool;
 public import wsedit.tools.regions.createtool;
+public import wsedit.tools.regions.erasertool;
 
 class RegionsGroup : ToolGroup {
 public:
     this(Workspace workspace) {
         super("Regions", "zoom-fit-best-symbolic", workspace);
-        tools = [new RegionTool(workspace, this), new CreateTool(workspace, this)];
+        tools = [new RegionTool(workspace, this), new EraserTool(workspace, this), new CreateTool(workspace, this)];
     }
 
     override void draw(Renderer renderer) {

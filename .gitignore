@@ -14,3 +14,4 @@ wsedit-test-*
 *.obj
 *.lst
 dub.selections.json
+test.wsp

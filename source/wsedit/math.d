@@ -1,4 +1,7 @@
 module wsedit.math;
+public import std.math;
+public import std.algorithm.comparison : clamp;
+import std.format;
 
 /**
     A point in 2D space
@@ -14,6 +17,20 @@ struct Vector2 {
         Y coordinate
     */
     double y = 0.0;
+
+    /**
+        Gets wether a vector is within a circle
+
+        center = center of circle
+        radius = radius of circle
+    */
+    bool isInCircle(Vector2 center, double radius) {
+        return sqrt(pow(center.x-x, 2) + pow(center.y - y, 2)) <= radius;
+    }
+
+    string toString() {
+        return "[x=%f, y=%f]".format(x, y);
+    }
 }
 
 /**
@@ -31,6 +48,9 @@ struct Vector2i {
     */
     int y = 0;
 
+    string toString() {
+        return "[x=%d, y=%d]".format(x, y);
+    }
 }
 
 /**
@@ -74,10 +94,10 @@ struct Rectangle {
     */
     bool intersects(Rectangle other) {
         return !(
-            other.left >= this.right ||
-            other.right <= this.left ||
-            other.top >= this.bottom ||
-            other.bottom <= this.top
+            other.left > this.right ||
+            other.right < this.left ||
+            other.top > this.bottom ||
+            other.bottom < this.top
         );
     }
 
@@ -86,10 +106,10 @@ struct Rectangle {
     */
     bool intersects(Vector2 other) {
         return !(
-            other.x >= this.right ||
-            other.x <= this.left ||
-            other.y >= this.bottom ||
-            other.y <= this.top
+            other.x > this.right ||
+            other.x < this.left ||
+            other.y > this.bottom ||
+            other.y < this.top
         );
     }
 
@@ -98,11 +118,15 @@ struct Rectangle {
     */
     bool intersects(Vector2i other) {
         return !(
-            other.x >= this.right ||
-            other.x <= this.left ||
-            other.y >= this.bottom ||
-            other.y <= this.top
+            other.x > this.right ||
+            other.x < this.left ||
+            other.y > this.bottom ||
+            other.y < this.top
         );
+    }
+
+    Rectangle expand(int x, int y) {
+        return Rectangle(this.x-x, this.y-y, this.width+(x*2), this.height+(y*2));
     }
 
     /**
@@ -110,5 +134,9 @@ struct Rectangle {
     */
     Vector2 center() {
         return Vector2(cast(double)x+cast(double)(width/2), cast(double)y+cast(double)(height/2));
+    }
+
+    string toString() {
+        return "[x=%d, y=%d, w=%d, h=%d]".format(x, y, width, height);
     }
 }

@@ -1,5 +1,6 @@
 module wsedit.ir.scene;
 import wsedit.math;
+import containers.list;
 
 /**
     A scene
@@ -27,7 +28,7 @@ public:
     Vector2i tileSize;
 
     /// Regions of the scene
-    Region[] regions;
+    List!Region regions;
 
     /// The currently selected region
     uint selectedRegion = 0;

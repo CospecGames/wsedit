@@ -380,12 +380,12 @@ public:
         ctx.paint();
 
         // Draw wereshift logo
-        ctx.translate(widgetArea.width/2, widgetArea.height/2);
+        ctx.translate(widgetArea.width/2, (widgetArea.height/2));
         ctx.setSourcePixbuf(wseditLogo, -originX, -originY);
         ctx.paint();
 
         // Draw info text
-        ctx.translate(-(extents.width/2), originY-32);
+        ctx.translate(-(extents.width/2), originY+16);
         ctx.setSourceRgb(1, 1, 1);
         ctx.showText(subtext);
 
